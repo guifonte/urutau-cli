@@ -18,7 +18,7 @@ pip install -r requirements.txt
 ### Usage
 For usage info type in the terminal:
 ```bash
-python methodrunner.py -help
+python methodrunner.py --help
 ```
 -OR-
 ```bash
