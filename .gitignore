@@ -1,5 +1,4 @@
 /venv
 /data
 /.idea
-/__pycache__
-/solver/__pycache__
+*/__pycache__
