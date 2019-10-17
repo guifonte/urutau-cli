@@ -1,5 +1,5 @@
-# urutau-methodrunner
-This repository contains the modal-hybrid sythesis method runner for the Urutau project
+# urutau-cli
+This repository contains the cli for the functionalities of the Urutau® project
 
 
 ### Installation
@@ -7,22 +7,18 @@ To use this program, python version 3.6 or later is necessary.
 The use of virtualenv is recommended!
 
 ```bash
-git clone http://github.com/guifonte/urutau-methodrunner
-apt-get install python3-venv
-cd urutau-methodrunner
-python -m venv venv
-source ENV/bin/activate
+git clone http://github.com/guifonte/urutau-cli
 pip install -r requirements.txt
 ```
 
 ### Usage
 For usage info type in the terminal:
 ```bash
-python methodrunner.py --help
+python urutau.py --help
 ```
 -OR-
 ```bash
-python methodrunner.py -h
+python urutau.py -h
 ```
 you will get the following list of running options:
 ```bash
@@ -101,4 +97,4 @@ output:
 
 ---
 
-Urutau Project® - Turbonius®
+Urutau® Project - Turbonius®
