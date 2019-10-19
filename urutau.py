@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import argparse
 import textwrap
 
@@ -6,23 +8,23 @@ import method_runner
 
 def parse_args():
     """Function to handle building and parsing of command line arguments"""
+    description = "Urutau Project - Hybrid-Modal Synthesizer"
+    usage = "urutau.py [OPTIONS] COMMAND [ARG...]\n       urutau.py [ --help | --version ]"
+
     parser = argparse.ArgumentParser(formatter_class=SubcommandHelpFormatter,
-                                     description=textwrap.dedent('''\
-                                     Hybrid Modal Synthesis Method Runner
-                                     ------------------------------------
-                                        Required arguments:
-                                        --phikyz <path>
-                                        --fmk <path>
-                                        --string <name>
-                                        --tf <dur>
-                                        --xp <pos>
-                                     ------------------------------------
-                                     '''))
-    subparsers = parser.add_subparsers(title="commands", dest='command', metavar='')
-    plot_parser = subparsers.add_parser('plot', help="plot everything")
+                                     description=description, usage=usage)
+
+    subparsers = parser.add_subparsers(title="Commands", dest='command', metavar='')
+
+    # PLOT
+    usage_run = "urutau.py plot [ARG...]\n       urutau.py plot --help"
+    plot_parser = subparsers.add_parser('plot', help="General plotter for .wav files")
+    plot_parser.add_argument('path', nargs='+')
     plot_parser.add_argument('--fft', help="plot fft", action="store_true")
 
-    run_parser = subparsers.add_parser('run', help="Hybrid Modal Synthesis Method Runner",
+    # RUN
+    usage_run = "urutau.py run [ARG...]\n       urutau.py run --help"
+    run_parser = subparsers.add_parser('run', usage=usage_run, help="Hybrid Modal Synthesis Method Runner",
                                        formatter_class=argparse.RawDescriptionHelpFormatter,
                                        description=textwrap.dedent('''\
                                         Hybrid Modal Synthesis Method Runner

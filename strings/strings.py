@@ -3,13 +3,13 @@ from collections import namedtuple
 import numpy as np
 
 
-def get_string_params(name, length, fund_freq, stringdb_path):
+def get_string_params(name, length, fund_freq, stringdb_path, fhmax):
     data = json.load(open(stringdb_path), object_hook=lambda d: namedtuple('X', d.keys())(*d.values()))
 
     found_string = None
-    for string in data:
-        if string.name == name:
-            found_string = string
+    for sel_string in data:
+        if sel_string.name == name:
+            found_string = sel_string
             break
 
     if found_string is None:
@@ -32,22 +32,23 @@ def get_string_params(name, length, fund_freq, stringdb_path):
         c = found_string.c_std
         mu = found_string.mu_std
 
-    String = namedtuple('String', ['f0', 'L', 'c', 'T', 'mu', 'D', 'B', 'etaf', 'etab', 'etaa'])
-    return String(f0, L, c, T, mu, found_string.D, found_string.B, found_string.etaf, found_string.etab, found_string.etaa)
+    Ns = get_string_ns(L, c, T, found_string.B, fhmax)
+
+    SelString = namedtuple('SelString', ['f0', 'L', 'c', 'T', 'mu', 'D', 'B', 'etaf', 'etab', 'etaa', 'Ns'])
+    return SelString(f0, L, c, T, mu, found_string.D, found_string.B, found_string.etaf, found_string.etab, found_string.etaa, Ns)
 
 
-def damping_paiva(Ns, string, neta, rho, dVETE, Qd):
+def damping_paiva(sel_string, neta, rho, dVETE, Qd):
+
+    Ns = sel_string.Ns
+    T = sel_string.T
+    L = sel_string.L
+    B = sel_string.B
+    c = sel_string.c  # transverse wave velocity
+    mu = sel_string.mu
+    D = sel_string.D
 
     Qt = np.ones(Ns)
-
-    T = string.T
-    L = string.L
-    B = string.B
-    c = string.c  # transverse wave velocity
-    mu = string.mu
-    D = string.D
-
-    # c = np.sqrt(T/mu)
 
     for j in range(1, Ns+1):
 
@@ -66,15 +67,16 @@ def damping_paiva(Ns, string, neta, rho, dVETE, Qd):
     return Qt
 
 
-def damping_woodhouse(Ns, string):
+def damping_woodhouse(sel_string):
 
-    T = string.T
-    L = string.L
-    B = string.B
-    c = string.c
-    etaf = string.etaf
-    etab = string.etab
-    etaa = string.etaa
+    Ns = sel_string.Ns
+    T = sel_string.T
+    L = sel_string.L
+    B = sel_string.B
+    c = sel_string.c
+    etaf = sel_string.etaf
+    etab = sel_string.etab
+    etaa = sel_string.etaa
 
     Qt = np.ones(Ns)
 
@@ -86,3 +88,15 @@ def damping_woodhouse(Ns, string):
         Qt[j-1] = 1/etaJ
 
     return Qt
+
+
+def get_string_ns(L, c, T, B, fhmax):
+
+    j = 1
+    fj = 0
+    while fhmax > fj:
+        wj = j * np.pi * c / L * np.sqrt(1 + (j ** 2) * ((B * np.pi ** 2) / (T * L ** 2)))
+        fj = wj/2/np.pi
+        j = j + 1
+
+    return j - 1

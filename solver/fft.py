@@ -2,7 +2,7 @@ import numpy as np
 import collections
 
 
-def fft_solve_2p(body, Tf, fs, Qt, Ns, string, xp, gamma):
+def fft_solve_2p(body, Tf, fs, Qt, string, xp, gamma):
     # Frequency domain vector[Hz]
     df = 1 / Tf
     f = np.linspace(-fs / 2, fs / 2 - df, np.floor(fs / df))
@@ -10,7 +10,7 @@ def fft_solve_2p(body, Tf, fs, Qt, Ns, string, xp, gamma):
     # Calculate body admitance matrix
     Yb = calc_Y_FRF_2p(body, Tf, fs)
 
-    Zs, H = Ys_and_H_gen(Qt, 2*np.pi*f, Ns, string, xp)
+    Zs, H = Ys_and_H_gen(Qt, 2*np.pi*f, string, xp)
     Zs = Zs
     H = H
     G = np.zeros(Yb.shape, dtype=np.complex)
@@ -39,7 +39,7 @@ def fft_solve_2p(body, Tf, fs, Qt, Ns, string, xp, gamma):
     return Accelerations(h[1, :], h[0, :])
 
 
-def fft_solve_1p(body, Tf, fs, Qt, Ns, string, xp, ratio):
+def fft_solve_1p(body, Tf, fs, Qt, string, xp, ratio):
     # Frequency domain vector[Hz]
     df = 1 / Tf
     f = np.linspace(-fs / 2, fs / 2 - df, np.floor(fs / df))
@@ -47,7 +47,7 @@ def fft_solve_1p(body, Tf, fs, Qt, Ns, string, xp, ratio):
     # Calculate body admitance matrix
     Yb = calc_Y_FRF_1p(body, Tf, fs)
 
-    Zs, H = Ys_and_H_gen_1p(Qt, 2*np.pi*f, Ns, string, xp)
+    Zs, H = Ys_and_H_gen_1p(Qt, 2*np.pi*f, string, xp)
     Zs = Zs*ratio
     H = H*ratio
     G = np.zeros(Yb.shape, dtype=np.complex)
@@ -115,10 +115,11 @@ def calc_Y_FRF_1p(body, Tf, fs):
     return Y
 
 
-def Ys_and_H_gen(Qt, w, Ns, string, xp):
+def Ys_and_H_gen(Qt, w, string, xp):
     c = string.c
     L = string.L
     T = string.T
+    Ns = string.Ns
 
     Zs = 1/(w+np.spacing(1))
     Hi = 1/(w+np.spacing(1))
@@ -145,10 +146,11 @@ def Ys_and_H_gen(Qt, w, Ns, string, xp):
     return Z, H
 
 
-def Ys_and_H_gen_1p(Qt, w, Ns, string, xp):
+def Ys_and_H_gen_1p(Qt, w, string, xp):
     c = string.c
     L = string.L
     T = string.T
+    Ns = string.Ns
 
     Zs = 1/(w+np.spacing(1))
     Hi = 1/(w+np.spacing(1))

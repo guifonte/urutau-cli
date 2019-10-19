@@ -82,17 +82,17 @@ def run(phikyz_path, fmk_path, string_name, tf, xp,
 
     # Strings
     stringdb_path = 'data/inputs/stringdb.json'
-    sel_string = strings.get_string_params(string_name, string_len, string_f0, stringdb_path)
+    sel_string = strings.get_string_params(string_name, string_len, string_f0, stringdb_path, string_fmax)
     if sel_string is None:
         return
 
-    Ns = int(string_fmax / sel_string.f0)  # number of string modes
+    #Ns = int(string_fmax / sel_string.f0)  # number of string modes
 
     # Calculate string losses
     if damp == 'paiva':
-        Qt = strings.damping_paiva(Ns, sel_string, neta, rho, dVETE, Qd)
+        Qt = strings.damping_paiva(sel_string, neta, rho, dVETE, Qd)
     else:
-        Qt = strings.damping_woodhouse(Ns, sel_string)
+        Qt = strings.damping_woodhouse(sel_string)
 
     Qt = Qt/2
 
@@ -113,26 +113,27 @@ def run(phikyz_path, fmk_path, string_name, tf, xp,
     if method == 'cfc':
         if pol == 2:
             if phikyzp_path is not None:
-                res = solver.cfc_solve_2p_2cp(body_params, Qt, Ns, sel_string, fs, pluck, tf, verbose)
+                res = solver.cfc_solve_2p_2cp(body_params, Qt, sel_string, fs, pluck, tf, verbose)
             else:
-                res = solver.cfc_solve_2p(body_params, Qt, Ns, sel_string, fs, pluck, tf, verbose)
+                res = solver.cfc_solve_2p(body_params, Qt, sel_string, fs, pluck, tf, verbose)
         else:  # pol == 1
             if phikyzp_path is not None:
-                res = solver.cfc_solve_1p_2cp(body_params, Qt, Ns, sel_string, fs, pluck, tf, verbose)
+                res = solver.cfc_solve_1p_2cp(body_params, Qt, sel_string, fs, pluck, tf, verbose)
             else:
-                res = solver.cfc_solve_1p(body_params, Qt, Ns, sel_string, fs, pluck, tf, verbose)
+                res = solver.cfc_solve_1p(body_params, Qt, sel_string, fs, pluck, tf, verbose)
     else:  # method = 'fft'
         if pol == 2:
-            res = solver.fft_solve_2p(body_params, tf, fs, Qt, Ns, sel_string, xp, pluck_gamma)
+            res = solver.fft_solve_2p(body_params, tf, fs, Qt, sel_string, xp, pluck_gamma)
         else:  # pol == 1
-            res = solver.fft_solve_1p(body_params, tf, fs, Qt, Ns, sel_string, xp, pluck_gamma)
+            res = solver.fft_solve_1p(body_params, tf, fs, Qt, sel_string, xp, pluck_gamma)
 
     end_time = time.time()
     print("Elapsed time = {:.5f}s".format(end_time - start_time))
 
     # ------------------------------------------------------------------------------------------------------------------
     # Outputs
-    output_path = output_path+timestamp+'_'+method+'_'+damp+'_'+string_name+'_'+str(sel_string.f0).replace('.', '-')+'Hz_'\
+    output_path = output_path+timestamp+'_'+method+'_'+damp+'_'+string_name+'_'\
+                  +str(sel_string.f0).replace('.', '-')+'Hz_'+str(xp).replace('.', '-')+'xp_'\
                   +str(pol)+'p_fs'+str(fs)+'_tf'+str(int(1000*tf))
     if phikyzp_path is not None:
         output_path = output_path + '_peg'

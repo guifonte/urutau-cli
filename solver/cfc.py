@@ -3,7 +3,7 @@ import collections
 
 
 # Coupled Forces Computation
-def cfc_solve_2p_2cp(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
+def cfc_solve_2p_2cp(body, Qt, string, Fs, pluck, Tf, verbose):
     # Simulation parameters
     dt = 1 / (Fs*5)
     t = np.linspace(0, Tf, np.floor(Tf / dt)) * dt
@@ -16,7 +16,7 @@ def cfc_solve_2p_2cp(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
     gamma = pluck.gamma
     Tr = Ti + dp
 
-    strings = cfc_strings_2cp(Qt, Ns, string, xp, dt)
+    strings = cfc_strings_2cp(Qt, string, xp, dt)
     body_matrix = cfc_body_2p_2cp(body, dt)
     # Input parameters
 
@@ -29,6 +29,7 @@ def cfc_solve_2p_2cp(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
     PhiSe = strings.PhiSe
     PhiSb = strings.PhiSb
     PhiSp = strings.PhiSp
+    Ns = string.Ns
 
     j = np.linspace(1, Ns, Ns)
 
@@ -191,7 +192,7 @@ def cfc_solve_2p_2cp(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
     return Displacements(z_e, y_e, z_b1_b, y_b1_b)
 
 
-def cfc_solve_1p_2cp(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
+def cfc_solve_1p_2cp(body, Qt, sel_string, Fs, pluck, Tf, verbose):
     # Simulation parameters
     dt = 1 / (Fs*5)
     t = np.linspace(0, Tf, np.floor(Tf / dt)) * dt
@@ -205,7 +206,7 @@ def cfc_solve_1p_2cp(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
     gamma = pluck.gamma
     Tr = Ti + dp
 
-    strings = cfc_strings_2cp(Qt, Ns, string, xp, dt)
+    strings = cfc_strings_2cp(Qt, sel_string, xp, dt)
     body_matrix = cfc_body_1p_2cp(body, dt)
 
     # String
@@ -217,6 +218,7 @@ def cfc_solve_1p_2cp(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
     PhiSe = strings.PhiSe
     PhiSb = strings.PhiSb
     PhiSp = strings.PhiSp
+    Ns = strings.Ns
 
     j = np.linspace(1, Ns, Ns)
 
@@ -327,7 +329,7 @@ def cfc_solve_1p_2cp(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
 
 
 # Coupled Forces Computation
-def cfc_solve_2p(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
+def cfc_solve_2p(body, Qt, sel_string, Fs, pluck, Tf, verbose):
     # Simulation parameters
     dt = 1 / (Fs*5)
     t = np.linspace(0, Tf, np.floor(Tf / dt)) * dt
@@ -340,7 +342,7 @@ def cfc_solve_2p(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
     gamma = pluck.gamma
     Tr = Ti + dp
 
-    strings = cfc_strings(Qt, Ns, string, xp, dt)
+    strings = cfc_strings(Qt, sel_string, xp, dt)
     body_matrix = cfc_body(body, dt)
     # Input parameters
 
@@ -351,6 +353,7 @@ def cfc_solve_2p(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
     GSc = strings.GSc
     PhiSe = strings.PhiSe
     PhiSc = strings.PhiSc
+    Ns = strings.Ns
 
     j = np.linspace(1, Ns, Ns)
 
@@ -488,7 +491,7 @@ def cfc_solve_2p(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
     return Displacements(z_p, y_p, z_b1, y_b1)
 
 
-def cfc_solve_1p(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
+def cfc_solve_1p(body, Qt, sel_string, Fs, pluck, Tf, verbose):
     # Simulation parameters
     dt = 1 / (Fs*5)
     t = np.linspace(0, Tf, np.floor(Tf / dt)) * dt
@@ -501,7 +504,7 @@ def cfc_solve_1p(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
     gamma = pluck.gamma
     Tr = Ti + dp
 
-    strings = cfc_strings(Qt, Ns, string, xp, dt)
+    strings = cfc_strings(Qt, sel_string, xp, dt)
     body_matrix = cfc_body(body, dt)
     # Input parameters
 
@@ -512,6 +515,7 @@ def cfc_solve_1p(body, Qt, Ns, string, Fs, pluck, Tf, verbose):
     GSc = strings.GSc
     PhiSe = strings.PhiSe
     PhiSc = strings.PhiSc
+    Ns = strings.Ns
 
     j = np.linspace(1, Ns, Ns)
 
@@ -712,11 +716,12 @@ def cfc_body_1p_2cp(body, dt):
     return Body_matrix(B1, B2, PhiBzb, GBzb, PhiBzp, GBzp)
 
 
-def cfc_strings_2cp(Qt, Ns, string, xe, dt):
-    L = string.L
-    mu = string.mu
-    B = string.B
-    T = string.T
+def cfc_strings_2cp(Qt, sel_string, xe, dt):
+    L = sel_string.L
+    mu = sel_string.mu
+    B = sel_string.B
+    T = sel_string.T
+    Ns = sel_string.Ns
 
     xb = L
     xp = 0
@@ -782,15 +787,16 @@ def cfc_strings_2cp(Qt, Ns, string, xe, dt):
     GSb = (A3 @ PhiSb).T
     GSp = (A3 @ PhiSp).T
 
-    String = collections.namedtuple('String', ['A1', 'A2', 'GSe', 'GSb', 'GSp', 'PhiSe', 'PhiSb', 'PhiSp'])
-    return String(A1, A2, GSe, GSb, GSp, PhiSe, PhiSb, PhiSp)
+    String = collections.namedtuple('String', ['A1', 'A2', 'GSe', 'GSb', 'GSp', 'PhiSe', 'PhiSb', 'PhiSp', 'Ns'])
+    return String(A1, A2, GSe, GSb, GSp, PhiSe, PhiSb, PhiSp, Ns)
 
 
-def cfc_strings(Qt, Ns, string, xp, dt):
-    L = string.L
-    mu = string.mu
-    B = string.B
-    T = string.T
+def cfc_strings(Qt, sel_string, xp, dt):
+    L = sel_string.L
+    mu = sel_string.mu
+    B = sel_string.B
+    T = sel_string.T
+    Ns = sel_string.Ns
 
     xb = L
 
@@ -836,6 +842,6 @@ def cfc_strings(Qt, Ns, string, xp, dt):
     GSe = (A3 @ PhiSe).T
     GSc = (A3 @ PhiSc).T
 
-    String = collections.namedtuple('String', ['A1', 'A2', 'GSe', 'GSc', 'PhiSe', 'PhiSc'])
-    return String(A1, A2, GSe, GSc, PhiSe, PhiSc)
+    String = collections.namedtuple('String', ['A1', 'A2', 'GSe', 'GSc', 'PhiSe', 'PhiSc', 'Ns'])
+    return String(A1, A2, GSe, GSc, PhiSe, PhiSc, Ns)
 
