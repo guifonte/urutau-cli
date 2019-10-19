@@ -12,6 +12,9 @@ cd urutau-cli/
 pip install -r requirements.txt
 ```
 
+It is also necessary to install the dependencies from pydub for mp3 file conversion.
+For a better explanation, go to [pydub's repository](https://github.com/jiaaro/pydub).
+
 ### Usage
 For usage info type in the terminal:
 ```bash
@@ -43,7 +46,6 @@ python urutau.py COMMAND -h
 ### To be implemented
 * fft comparisons
 * list strings
-* convertion to mp3 files
 * spectrogram
 * fix the implementation with peg coupling
 

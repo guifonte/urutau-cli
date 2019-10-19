@@ -3,7 +3,8 @@ import os
 import collections
 
 import numpy as np
-from librosa import output
+from librosa import output, core
+from pydub import AudioSegment
 
 import plot
 import solver
@@ -195,38 +196,62 @@ def run(phikyz_path, fmk_path, string_name, tf, xp,
                         output.write_wav(output_path + timestamp + '_cfc_y_acc_pluck.wav', res_y_p_acc, sr=fs, norm=True)
 
     # mp3
-    # AudioSegment.from_wav(output_path + timestamp + '_fft_z.wav').export(output_path + timestamp + '_fft_z.mp3',format="mp3")
     if mp3:
         if method == 'fft':
             if acc:
-                print("")
+                save_mp3(output_path + timestamp + '_fft_z_acc.mp3', res.z_c, fs)
                 if pol == 2:
-                    print("")
+                    save_mp3(output_path + timestamp + '_fft_y_acc.mp3', res.y_c, fs)
         else:
             if displ:
-                print("")
+                save_mp3(output_path + timestamp + '_cfc_z_displ.mp3', res.z_b1, fs)
                 if pol == 2:
-                    print("")
+                    save_mp3(output_path + timestamp + '_cfc_y_displ.mp3', res.y_b1, fs)
                 if pluckingpoint:
-                    print("")
+                    save_mp3(output_path + timestamp + '_cfc_z_displ_pluck.mp3', res.z_p, fs)
                     if pol == 2:
-                        print("")
+                        save_mp3(output_path + timestamp + '_cfc_y_displ_pluck.mp3', res.y_p, fs)
             if vel:
-                print("")
-                if pol == 2:
-                    print("")
-                if pluckingpoint:
-                    print("")
+                if not wav:
+                    res_z_vel = np.concatenate(([0], derivative(res.z_b1, 1 / fs)))
                     if pol == 2:
-                        print("")
+                        res_y_vel = np.concatenate(([0], derivative(res.y_b1, 1 / fs)))
+                    if pluckingpoint:
+                        res_z_p_vel = np.concatenate(([0], derivative(res.z_p, 1 / fs)))
+                        if pol == 2:
+                            res_y_p_vel = np.concatenate(([0], derivative(res.y_p, 1 / fs)))
+                save_mp3(output_path + timestamp + '_cfc_z_vel.mp3', res_z_vel, fs)
+                if pol == 2:
+                    save_mp3(output_path + timestamp + '_cfc_y_vel.mp3', res_y_vel, fs)
+                if pluckingpoint:
+                    save_mp3(output_path + timestamp + '_cfc_z_vel_pluck.mp3', res_z_p_vel, fs)
+                    if pol == 2:
+                        save_mp3(output_path + timestamp + '_cfc_y_vel_pluck.mp3', res_y_p_vel, fs)
             if acc:
-                print("")
+                if not wav:
+                    if vel:
+                        res_z_acc = np.concatenate(([0], derivative(res_z_vel, 1 / fs)))
+                        if pol == 2:
+                            res_y_acc = np.concatenate(([0], derivative(res_y_vel, 1 / fs)))
+                        if pluckingpoint:
+                            res_z_p_acc = np.concatenate(([0], derivative(res_z_p_vel, 1 / fs)))
+                            if pol == 2:
+                                res_y_p_acc = np.concatenate(([0], derivative(res_y_p_vel, 1 / fs)))
+                    else:
+                        res_z_acc = np.concatenate(([0], [0], derivative(derivative(res.z_b1, 1 / fs), 1 / fs)))
+                        if pol == 2:
+                            res_y_acc = np.concatenate(([0], [0], derivative(derivative(res.y_b1, 1 / fs), 1 / fs)))
+                        if pluckingpoint:
+                            res_z_p_acc = np.concatenate(([0], [0], derivative(derivative(res.z_p, 1 / fs), 1 / fs)))
+                            if pol == 2:
+                                res_y_p_acc = np.concatenate(([0], [0], derivative(derivative(res.y_p, 1 / fs), 1 / fs)))
+                save_mp3(output_path + timestamp + '_cfc_z_acc.mp3', res_z_acc, fs)
                 if pol == 2:
-                    print("")
+                    save_mp3(output_path + timestamp + '_cfc_y_acc.mp3', res_y_acc, fs)
                 if pluckingpoint:
-                    print("")
+                    save_mp3(output_path + timestamp + '_cfc_z_acc_pluck.mp3', res_z_p_acc, fs)
                     if pol == 2:
-                        print("")
+                        save_mp3(output_path + timestamp + '_cfc_y_acc_pluck.mp3', res_y_p_acc, fs)
 
     # graphic
     if fft:
@@ -317,3 +342,14 @@ def derivative(a, dt):
         b[i] = (a[i] - a[i-1])/dt
 
     return b
+
+
+def save_mp3(path, y, sr):
+    if sr != 44100:
+        y = core.resample(y, sr, 44100)
+
+    yint = (y/np.max(y) * 0.49 * (2**16)).astype(np.int16)
+    audio = AudioSegment(data=yint, frame_rate=44100, sample_width=2, channels=1)
+    audio.export(path + '.mp3', format='mp3')
+
+    return
