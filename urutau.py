@@ -9,16 +9,25 @@ import method_runner
 def parse_args():
     """Function to handle building and parsing of command line arguments"""
     description = "Urutau Project - Hybrid-Modal Synthesizer"
-    usage = "urutau.py [OPTIONS] COMMAND [ARG...]\n       urutau.py [ --help | --version ]"
+    usage = "urutau.py COMMAND [ARG...]\n       urutau.py [ --help | --version ]"
 
     parser = argparse.ArgumentParser(formatter_class=SubcommandHelpFormatter,
                                      description=description, usage=usage)
 
     subparsers = parser.add_subparsers(title="Commands", dest='command', metavar='')
 
+    # CONVERT
+    usage_convert = "urutau.py convert PATH OPERATION [ARG...]\n       urutau.py convert --help"
+    convert_parser = subparsers.add_parser('convert', usage=usage_convert, help="differentiate or integrate a .wav signal")
+    convert_parser.add_argument('path', help="path of the .wav file to be converted", metavar="<path>")
+    convert_parser.add_argument('operation', help="derivative or integral", metavar="<op>", choices=['derivative', 'integral'])
+    convert_parser.add_argument('--out', help="output type of signal: displ, vel or acc", default="", metavar="<type>")
+    convert_parser.add_argument("--mp3", action="store_true", help="generate mp3 file", default=False)
+    convert_parser.add_argument("--wav-no", action="store_true", help="generate mp3 file", default=False)
+
     # PLOT
-    usage_run = "urutau.py plot [ARG...]\n       urutau.py plot --help"
-    plot_parser = subparsers.add_parser('plot', help="General plotter for .wav files")
+    usage_plot = "urutau.py plot [ARG...]\n       urutau.py plot --help"
+    plot_parser = subparsers.add_parser('plot', usage=usage_plot, help="General plotter for .wav files")
     plot_parser.add_argument('path', nargs='+')
     plot_parser.add_argument('--fft', help="plot fft", action="store_true")
 
@@ -135,6 +144,9 @@ def shell():
                           args.pluck_ti, args.pluck_dp, args.pluck_F0, args.pluck_gamma,
                           args.verbose, args.fft, args.fft_window,
                           args.pluckingpoint, args.displ, args.vel, acc, wav, mp3)
+
+    elif args.command == 'convert':
+        method_runner.convert(args.path, args.operation, args.out, args.mp3, not args.wav_no)
 
     elif args.command == 'plot':
         print('plot')

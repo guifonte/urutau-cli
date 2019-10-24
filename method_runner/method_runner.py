@@ -5,6 +5,8 @@ import collections
 import numpy as np
 from librosa import output, core
 from pydub import AudioSegment
+from scipy import integrate
+from scipy.io.wavfile import read as read_wav
 
 import plot
 import solver
@@ -134,8 +136,8 @@ def run(phikyz_path, fmk_path, string_name, tf, xp,
     # ------------------------------------------------------------------------------------------------------------------
     # Outputs
     output_path = output_path+timestamp+'_'+method+'_'+damp+'_'+string_name+'_'\
-                  +str(sel_string.f0).replace('.', '-')+'Hz_'+str(xp).replace('.', '-')+'xp_'\
-                  +str(pol)+'p_fs'+str(fs)+'_tf'+str(int(1000*tf))
+                  + str(sel_string.f0).replace('.', '-')+'Hz_'+str(xp).replace('.', '-')+'xp_'\
+                  + str(pol)+'p_fs'+str(fs)+'_tf'+str(int(1000*tf))
     if phikyzp_path is not None:
         output_path = output_path + '_peg'
     os.makedirs(output_path)
@@ -159,34 +161,34 @@ def run(phikyz_path, fmk_path, string_name, tf, xp,
                     if pol == 2:
                         output.write_wav(output_path + timestamp + '_cfc_y_displ_pluck.wav', res.y_p, sr=fs, norm=True)
             if vel:
-                res_z_vel = np.concatenate(([0], derivative(res.z_b1, 1 / fs)))
+                res_z_vel = derivative(res.z_b1, 1 / fs)
                 output.write_wav(output_path + timestamp + '_cfc_z_vel.wav', res_z_vel, sr=fs, norm=True)
                 if pol == 2:
-                    res_y_vel = np.concatenate(([0], derivative(res.y_b1, 1 / fs)))
+                    res_y_vel = derivative(res.y_b1, 1 / fs)
                     output.write_wav(output_path + timestamp + '_cfc_y_vel.wav', res_y_vel, sr=fs, norm=True)
                 if pluckingpoint:
-                    res_z_p_vel = np.concatenate(([0], derivative(res.z_p, 1 / fs)))
+                    res_z_p_vel = derivative(res.z_p, 1 / fs)
                     output.write_wav(output_path + timestamp + '_cfc_z_vel_pluck.wav', res_z_p_vel, sr=fs, norm=True)
                     if pol == 2:
-                        res_y_p_vel = np.concatenate(([0], derivative(res.y_p, 1 / fs)))
+                        res_y_p_vel = derivative(res.y_p, 1 / fs)
                         output.write_wav(output_path + timestamp + '_cfc_y_vel_pluck.wav', res_y_p_vel, sr=fs, norm=True)
             if acc:
                 if vel:
-                    res_z_acc = np.concatenate(([0], derivative(res_z_vel, 1 / fs)))
+                    res_z_acc = derivative(res_z_vel, 1 / fs)
                     if pol == 2:
-                        res_y_acc = np.concatenate(([0], derivative(res_y_vel, 1 / fs)))
+                        res_y_acc = derivative(res_y_vel, 1 / fs)
                     if pluckingpoint:
-                        res_z_p_acc = np.concatenate(([0], derivative(res_z_p_vel, 1 / fs)))
+                        res_z_p_acc = derivative(res_z_p_vel, 1 / fs)
                         if pol == 2:
-                            res_y_p_acc = np.concatenate(([0], derivative(res_y_p_vel, 1 / fs)))
+                            res_y_p_acc = derivative(res_y_p_vel, 1 / fs)
                 else:
-                    res_z_acc = np.concatenate(([0], [0], derivative(derivative(res.z_b1, 1 / fs), 1 / fs)))
+                    res_z_acc = derivative(derivative(res.z_b1, 1 / fs), 1 / fs)
                     if pol == 2:
-                        res_y_acc = np.concatenate(([0], [0], derivative(derivative(res.y_b1, 1 / fs), 1 / fs)))
+                        res_y_acc = derivative(derivative(res.y_b1, 1 / fs), 1 / fs)
                     if pluckingpoint:
-                        res_z_p_acc = np.concatenate(([0], [0], derivative(derivative(res.z_p, 1 / fs), 1 / fs)))
+                        res_z_p_acc = derivative(derivative(res.z_p, 1 / fs), 1 / fs)
                         if pol == 2:
-                            res_y_p_acc = np.concatenate(([0], [0], derivative(derivative(res.y_p, 1 / fs), 1 / fs)))
+                            res_y_p_acc = derivative(derivative(res.y_p, 1 / fs), 1 / fs)
                 output.write_wav(output_path + timestamp + '_cfc_z_acc.wav', res_z_acc, sr=fs, norm=True)
                 if pol == 2:
                     output.write_wav(output_path + timestamp + '_cfc_y_acc.wav', res_y_acc, sr=fs, norm=True)
@@ -199,59 +201,59 @@ def run(phikyz_path, fmk_path, string_name, tf, xp,
     if mp3:
         if method == 'fft':
             if acc:
-                save_mp3(output_path + timestamp + '_fft_z_acc.mp3', res.z_c, fs)
+                save_mp3(output_path + timestamp + '_fft_z_acc', res.z_c, fs)
                 if pol == 2:
-                    save_mp3(output_path + timestamp + '_fft_y_acc.mp3', res.y_c, fs)
+                    save_mp3(output_path + timestamp + '_fft_y_acc', res.y_c, fs)
         else:
             if displ:
-                save_mp3(output_path + timestamp + '_cfc_z_displ.mp3', res.z_b1, fs)
+                save_mp3(output_path + timestamp + '_cfc_z_displ', res.z_b1, fs)
                 if pol == 2:
-                    save_mp3(output_path + timestamp + '_cfc_y_displ.mp3', res.y_b1, fs)
+                    save_mp3(output_path + timestamp + '_cfc_y_displ', res.y_b1, fs)
                 if pluckingpoint:
-                    save_mp3(output_path + timestamp + '_cfc_z_displ_pluck.mp3', res.z_p, fs)
+                    save_mp3(output_path + timestamp + '_cfc_z_displ_pluck', res.z_p, fs)
                     if pol == 2:
-                        save_mp3(output_path + timestamp + '_cfc_y_displ_pluck.mp3', res.y_p, fs)
+                        save_mp3(output_path + timestamp + '_cfc_y_displ_pluck', res.y_p, fs)
             if vel:
                 if not wav:
-                    res_z_vel = np.concatenate(([0], derivative(res.z_b1, 1 / fs)))
+                    res_z_vel = derivative(res.z_b1, 1 / fs)
                     if pol == 2:
-                        res_y_vel = np.concatenate(([0], derivative(res.y_b1, 1 / fs)))
+                        res_y_vel = derivative(res.y_b1, 1 / fs)
                     if pluckingpoint:
-                        res_z_p_vel = np.concatenate(([0], derivative(res.z_p, 1 / fs)))
+                        res_z_p_vel = derivative(res.z_p, 1 / fs)
                         if pol == 2:
-                            res_y_p_vel = np.concatenate(([0], derivative(res.y_p, 1 / fs)))
-                save_mp3(output_path + timestamp + '_cfc_z_vel.mp3', res_z_vel, fs)
+                            res_y_p_vel = derivative(res.y_p, 1 / fs)
+                save_mp3(output_path + timestamp + '_cfc_z_vel', res_z_vel, fs)
                 if pol == 2:
-                    save_mp3(output_path + timestamp + '_cfc_y_vel.mp3', res_y_vel, fs)
+                    save_mp3(output_path + timestamp + '_cfc_y_vel', res_y_vel, fs)
                 if pluckingpoint:
-                    save_mp3(output_path + timestamp + '_cfc_z_vel_pluck.mp3', res_z_p_vel, fs)
+                    save_mp3(output_path + timestamp + '_cfc_z_vel_pluck', res_z_p_vel, fs)
                     if pol == 2:
-                        save_mp3(output_path + timestamp + '_cfc_y_vel_pluck.mp3', res_y_p_vel, fs)
+                        save_mp3(output_path + timestamp + '_cfc_y_vel_pluck', res_y_p_vel, fs)
             if acc:
                 if not wav:
                     if vel:
-                        res_z_acc = np.concatenate(([0], derivative(res_z_vel, 1 / fs)))
+                        res_z_acc = derivative(res_z_vel, 1 / fs)
                         if pol == 2:
-                            res_y_acc = np.concatenate(([0], derivative(res_y_vel, 1 / fs)))
+                            res_y_acc = derivative(res_y_vel, 1 / fs)
                         if pluckingpoint:
-                            res_z_p_acc = np.concatenate(([0], derivative(res_z_p_vel, 1 / fs)))
+                            res_z_p_acc = derivative(res_z_p_vel, 1 / fs)
                             if pol == 2:
-                                res_y_p_acc = np.concatenate(([0], derivative(res_y_p_vel, 1 / fs)))
+                                res_y_p_acc = derivative(res_y_p_vel, 1 / fs)
                     else:
-                        res_z_acc = np.concatenate(([0], [0], derivative(derivative(res.z_b1, 1 / fs), 1 / fs)))
+                        res_z_acc = derivative(derivative(res.z_b1, 1 / fs), 1 / fs)
                         if pol == 2:
-                            res_y_acc = np.concatenate(([0], [0], derivative(derivative(res.y_b1, 1 / fs), 1 / fs)))
+                            res_y_acc = derivative(derivative(res.y_b1, 1 / fs), 1 / fs)
                         if pluckingpoint:
-                            res_z_p_acc = np.concatenate(([0], [0], derivative(derivative(res.z_p, 1 / fs), 1 / fs)))
+                            res_z_p_acc = derivative(derivative(res.z_p, 1 / fs), 1 / fs)
                             if pol == 2:
-                                res_y_p_acc = np.concatenate(([0], [0], derivative(derivative(res.y_p, 1 / fs), 1 / fs)))
-                save_mp3(output_path + timestamp + '_cfc_z_acc.mp3', res_z_acc, fs)
+                                res_y_p_acc = derivative(derivative(res.y_p, 1 / fs), 1 / fs)
+                save_mp3(output_path + timestamp + '_cfc_z_acc', res_z_acc, fs)
                 if pol == 2:
-                    save_mp3(output_path + timestamp + '_cfc_y_acc.mp3', res_y_acc, fs)
+                    save_mp3(output_path + timestamp + '_cfc_y_acc', res_y_acc, fs)
                 if pluckingpoint:
-                    save_mp3(output_path + timestamp + '_cfc_z_acc_pluck.mp3', res_z_p_acc, fs)
+                    save_mp3(output_path + timestamp + '_cfc_z_acc_pluck', res_z_p_acc, fs)
                     if pol == 2:
-                        save_mp3(output_path + timestamp + '_cfc_y_acc_pluck.mp3', res_y_p_acc, fs)
+                        save_mp3(output_path + timestamp + '_cfc_y_acc_pluck', res_y_p_acc, fs)
 
     # graphic
     if fft:
@@ -336,12 +338,13 @@ def run(phikyz_path, fmk_path, string_name, tf, xp,
 
 
 def derivative(a, dt):
-    b = np.zeros(len(a) - 1)
+    b = np.diff(a)/dt
+    return np.hstack([0, b])
 
-    for i in range(1, len(a) - 1):
-        b[i] = (a[i] - a[i-1])/dt
 
-    return b
+def integral(a, dt):
+    b = integrate.cumtrapz(a, dx=dt)
+    return np.hstack([0, b])
 
 
 def save_mp3(path, y, sr):
@@ -353,3 +356,30 @@ def save_mp3(path, y, sr):
     audio.export(path + '.mp3', format='mp3')
 
     return
+
+
+def convert(input_path, operation, output_type="", mp3=False, wav=True):
+    timestamp = str(time.time()).split('.')[0]
+
+    sr, y = read_wav(input_path)
+    if operation == 'derivative':
+        res = derivative(y, 1/sr)
+    elif operation == 'integral':
+        res = integral(y, 1/sr)
+    else:
+        print('ERROR: The operation ' + operation + ' is unknown!')
+        return
+
+    file_name = str(os.path.basename(input_path).split('.')[0])
+    file_name_complete = timestamp + '_' + file_name + '_converted_to_' + output_type
+    output_path = 'data/outputs/' + file_name_complete
+    os.makedirs(output_path)
+    output_path = output_path + '/'
+
+    if wav:
+        output.write_wav(output_path + file_name_complete + '.wav', res, sr=sr, norm=True)
+
+    if mp3:
+        save_mp3(output_path + file_name_complete, res, sr)
+
+    print('File converted to: ' + output_path)
